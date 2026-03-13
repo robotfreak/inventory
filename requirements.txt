@@ -1,0 +1,6 @@
+Flask
+qrcode
+Pillow
+dotenv
+requests
+google-genai

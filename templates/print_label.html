@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Print Label</title>
+    <style>
+        body { margin: 0; padding: 0; }
+        
+        .label-container {
+            display: flex;
+            align-items: center;
+            justify_content: space-between;
+            font-family: sans-serif;
+            overflow: hidden;
+            
+            /* Rahmen nur zur Ansicht, im Druck oft ausgeblendet */
+            border: 1px dashed #ccc; 
+            margin: 10px;
+        }
+
+        /* Größen */
+        .size-30x14 {
+            width: 30mm;
+            height: 14mm;
+        }
+        .size-50x14 {
+            width: 50mm;
+            height: 14mm;
+        }
+
+        /* Inhalt */
+        .qr-code {
+            width: 12mm;
+            height: 12mm;
+            margin-left: 1mm;
+        }
+        
+        .text-content {
+            flex-grow: 1;
+            padding-left: 2mm;
+            font-size: 8pt;
+            line-height: 1.1;
+            overflow: hidden;
+            white-space: nowrap; 
+        }
+        
+        /* Druck Styles */
+        @media print {
+            @page {
+                size: {{ size }}mm; /* Geht nicht immer, oft A4 */
+                margin: 0;
+            }
+            body { margin: 0; }
+            .label-container {
+                border: none; /* Kein Rahmen im Druck */
+                margin: 0;
+                position: absolute;
+                top: 0; left: 0;
+            }
+            /* Alles andere ausblenden */
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print" style="padding: 20px;">
+        <h3>Vorschau ({{ size }}mm)</h3>
+        <p>Ort: <strong>{{ location['name'] }}</strong></p>
+        <div class="btn-group">
+            <button onclick="window.print()" class="btn btn-primary">🖨️ Drucken (Browser)</button>
+            <a href="{{ url_for('download_label', location_id=location['id'], size=size, format='pdf') }}" class="btn btn-success">📥 Download PDF (für App)</a>
+        </div>
+        <hr>
+    </div>
+
+    <!-- Das Label -->
+    <div class="label-container size-{{ size }}">
+        <img src="data:image/png;base64,{{ qr_b64 }}" class="qr-code">
+        <div class="text-content">
+            <b style="font-size: 1.1em;">{{ location['name'] }}</b><br>
+            <span style="font-size: 0.8em;">Lager #{{ location['id'] }}</span>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>📦 Datenbanken verwalten</h1>
+    <div class="alert alert-info">
+        Laden Sie hier Kopien von <code>inventory.db</code> anderer Benutzer hoch.
+        <br>Die Items aus diesen Datenbanken erscheinen automatisch in der Suche (können aber nicht bearbeitet werden).
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">📥 Upload</div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" class="row g-3">
+                <div class="col-auto">
+                    <label class="visually-hidden">Datenbank Datei</label>
+                    <input type="file" name="db_file" class="form-control" accept=".db" required>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Hochladen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="list-group">
+        {% for db in databases %}
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <strong>{{ db['name'] }}</strong>
+                <br><small class="text-muted">{{ db['id'] }}</small>
+            </div>
+            <form method="post">
+                <input type="hidden" name="delete" value="{{ db['id'] }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Wirklich löschen?')">🗑️ Löschen</button>
+            </form>
+        </div>
+        {% endfor %}
+        
+        {% if not databases %}
+            <div class="list-group-item text-muted">Keine externen Datenbanken.</div>
+        {% endif %}
+    </div>
+{% endblock %}

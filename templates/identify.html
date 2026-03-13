@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>📸 Identifizieren</h1>
+    <p>Mach ein Foto von deinem Bauteil. Gemini AI versucht, es zu erkennen!</p>
+
+    <div class="card bg-light">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="image" class="form-label">Foto aufnehmen / auswählen</label>
+                    <input type="file" name="image" class="form-control" accept="image/*" capture="environment" required>
+                    <div class="form-text">Am besten funktioniert ein klares Foto auf hellem Hintergrund.</div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">🔍 Analysieren starten</button>
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">Abbrechen</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <h5>Tipps für gute Ergebnisse:</h5>
+        <ul>
+            <li>Sorge für gutes Licht. 💡</li>
+            <li>Fotografiere nur das Bauteil, nicht den ganzen Tisch. 🔍</li>
+            <li>Bei kleinen Teilen (SMD, ICs): Geh nah ran! 🔬</li>
+        </ul>
+    </div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>🗂️ Kategorien</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">Neue Kategorie</div>
+        <div class="card-body">
+            <form method="post">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <input type="text" name="name" class="form-control" placeholder="Name (z.B. Widerstände)" required>
+                    </div>
+                    <div class="col-sm-4">
+                        <select name="parent_id" class="form-select">
+                            <option value="">-- Hauptkategorie --</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat['id'] }}">{{ cat['name'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="submit" class="btn btn-primary w-100">Anlegen</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Übergeordnet</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cat in categories %}
+            <tr>
+                <td>{{ cat['id'] }}</td>
+                <td>{{ cat['name'] }}</td>
+                <td>{{ cat['parent_name'] or '-' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Zurück zur Übersicht</a>
+
+{% endblock %}

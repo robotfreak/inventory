@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>🏷️ Orte & Labels</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">➕ Neuer Lagerort</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted">Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="z.B. Sortimentsbox Rot" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Gehört zu (Optional)</label>
+                        <select name="parent_id" class="form-select">
+                            <option value="">-- Top Level --</option>
+                            {% for l in locations %}
+                                <option value="{{ l['id'] }}">{{ l['full_path'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                         <label class="form-label small text-muted">Beschreibung</label>
+                        <input type="text" name="description" class="form-control" placeholder="Details...">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Anlegen</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for loc in locations %}
+        <div class="col">
+            <div class="card h-100 shadow-sm {% if loc['parent_id'] %}border-start border-4 border-info{% endif %}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            {% if loc['parent_id'] %}
+                                <div class="text-muted small mb-1">↳ In: {{ loc['full_path'].split(' > ')[0:-1]|join(' > ') }}</div>
+                            {% endif %}
+                            <h5 class="card-title m-0">{{ loc['name'] }}</h5>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                             {% if loc['wled_ip'] %}
+                                <button onclick="flashLocation({{ loc['id'] }})" class="btn btn-warning" title="LED blinken lassen">💡</button>
+                            {% endif %}
+                            <a href="{{ url_for('edit_location', id=loc['id']) }}" class="btn btn-outline-secondary">✏️</a>
+                        </div>
+                    </div>
+                    
+                    <p class="card-text text-muted small mb-2">{{ loc['description'] or 'Keine Beschreibung' }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="badge bg-light text-dark border">{{ loc['item_count'] }} Teile</span>
+                        
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-dark dropdown-toggle" data-bs-toggle="dropdown">
+                              🖨️ Label
+                            </button>
+                            <ul class="dropdown-menu">
+                              <li><h6 class="dropdown-header">Browser-Druck</h6></li>
+                              <li><a class="dropdown-item" target="_blank" href="{{ url_for('print_label', location_id=loc['id'], size='30x14') }}">30x14mm</a></li>
+                              <li><a class="dropdown-item" target="_blank" href="{{ url_for('print_label', location_id=loc['id'], size='50x14') }}">50x14mm</a></li>
+                              <li><hr class="dropdown-divider"></li>
+                              <li><h6 class="dropdown-header">Download PDF</h6></li>
+                              <li><a class="dropdown-item" href="{{ url_for('download_label', location_id=loc['id'], size='30x14', format='pdf') }}">30x14mm.pdf</a></li>
+                              <li><a class="dropdown-item" href="{{ url_for('download_label', location_id=loc['id'], size='50x14', format='pdf') }}">50x14mm.pdf</a></li>
+                            </ul>
+                            
+                            <a href="{{ url_for('index', location_id=loc['id']) }}" class="btn btn-primary">
+                                Inhalt ➡️
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not locations %}
+        <div class="alert alert-info mt-4">Noch keine Orte angelegt.</div>
+    {% endif %}
+
+    <script>
+    function flashLocation(id) {
+        fetch('/api/flash/' + id, {method: 'POST'})
+            .then(r => r.json())
+            .then(d => {
+                if(!d.success) alert(d.msg);
+            });
+    }
+    </script>
+{% endblock %}

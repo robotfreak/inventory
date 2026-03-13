@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>✨ Neues Teil anlegen</h1>
+    
+    {% if prefill %}
+    <div class="alert alert-success">
+        <strong>📸 Analyse erfolgreich!</strong> Bitte kurz prüfen und speichern.
+        <br>
+        <small class="text-muted">Erkannt als: {{ prefill.get('description', '') }}</small>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('create') }}" enctype="multipart/form-data"> <!-- Action explizit setzen -->
+        <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" name="name" class="form-control" 
+                   value="{{ request.form.get('name', prefill.get('name', '')) if prefill else request.form.get('name', '') }}" required autofocus>
+        </div>
+        
+        <div class="mb-3">
+            <label for="notes" class="form-label">Notizen / Pinout</label>
+            <textarea name="notes" class="form-control" rows="3">{{ request.form.get('notes', prefill.get('description', '')) if prefill else request.form.get('notes', '') }}</textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label for="datasheet" class="form-label">Datenblatt 1 (PDF)</label>
+            <input type="file" name="datasheet" class="form-control" accept=".pdf">
+        </div>
+
+        <div class="mb-3">
+            <label for="datasheet2" class="form-label">Datenblatt 2 (PDF)</label>
+            <input type="file" name="datasheet2" class="form-control" accept=".pdf">
+        </div>
+
+        <div class="mb-3">
+            <label for="image1" class="form-label">Bild 1</label>
+            <input type="file" name="image1" class="form-control" accept="image/*">
+        </div>
+
+        <div class="mb-3">
+            <label for="image2" class="form-label">Bild 2</label>
+            <input type="file" name="image2" class="form-control" accept="image/*">
+        </div>
+        
+        <div class="mb-3">
+            <label for="category_id" class="form-label">Kategorie</label>
+            <select name="category_id" class="form-select">
+                <option value="">-- Keine --</option>
+                {% for category in categories %}
+                    <option value="{{ category['id'] }}" 
+                        {% if prefill and prefill.get('category_hint') in category['name'] %}selected{% endif %}>
+                        {{ category['name'] }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% if prefill and prefill.get('category_hint') %}
+            <div class="form-text text-success">Vorschlag: {{ prefill.get('category_hint') }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label for="location_id" class="form-label">Ort (Box/Kiste)</label>
+            <select name="location_id" class="form-select">
+                <option value="">-- Keine --</option>
+                {% for loc in locations %}
+                    <option value="{{ loc['id'] }}">{{ loc['name'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="mb-3">
+            <label for="sub_location" class="form-label">Details (Fach, Reihe...)</label>
+            <input type="text" name="sub_location" class="form-control" 
+                   value="{{ request.form.get('sub_location', '') }}">
+        </div>
+
+        <div class="row">
+            <div class="col-6 mb-3">
+                <label for="quantity" class="form-label">Aktuelle Menge</label>
+                <input type="number" name="quantity" class="form-control" 
+                       value="{{ request.form.get('quantity', prefill.get('quantity', 0)) if prefill else request.form.get('quantity', 0) }}">
+            </div>
+            <div class="col-6 mb-3">
+                <label for="min_quantity" class="form-label">Mindestmenge</label>
+                <input type="number" name="min_quantity" class="form-control" value="{{ request.form['min_quantity'] or 0 }}">
+                <div class="form-text">Warnung, wenn Bestand darunter fällt.</div>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">Speichern</button>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Abbrechen</a>
+        </div>
+    </form>
+{% endblock %}

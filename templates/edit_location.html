@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>✏️ Ort bearbeiten</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name (kurz ist besser für Labels!)</label>
+                    <input type="text" name="name" class="form-control" value="{{ location['name'] }}" required autofocus>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="parent_id" class="form-label">Übergeordneter Ort (z.B. Schrank, Regal)</label>
+                    <select name="parent_id" class="form-select">
+                        <option value="">-- Keiner (Top-Level) --</option>
+                        {% for loc in all_locations %}
+                            {% if loc['id'] != location['id'] %}
+                                <option value="{{ loc['id'] }}" {% if location['parent_id'] == loc['id'] %}selected{% endif %}>
+                                    {{ loc['full_path'] or loc['name'] }}
+                                </option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Beschreibung (Details)</label>
+                    <textarea name="description" class="form-control" rows="3">{{ location['description'] or '' }}</textarea>
+                </div>
+                
+                <hr>
+                <h5>💡 Pick-to-Light (WLED)</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">WLED IP-Adresse</label>
+                        <input type="text" name="wled_ip" class="form-control" value="{{ location['wled_ip'] or '' }}" placeholder="192.168.x.x">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Start LED</label>
+                        <input type="number" name="led_index" class="form-control" value="{{ location['led_index'] or 0 }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Anzahl LEDs</label>
+                        <input type="number" name="led_count" class="form-control" value="{{ location['led_count'] or 10 }}">
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">Speichern</button>
+                    <a href="{{ url_for('locations') }}" class="btn btn-secondary">Abbrechen</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

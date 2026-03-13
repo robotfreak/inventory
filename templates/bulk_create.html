@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>⚡ E-Reihen Generator</h1>
+    <p class="lead">Erzeuge ganze Serien auf einen Schlag!</p>
+
+    <div class="card bg-light mb-4">
+        <div class="card-body">
+            <form method="post">
+                <div class="row g-3">
+                    <!-- Basics -->
+                    <div class="col-md-6">
+                        <label class="form-label">Name Präfix</label>
+                        <input type="text" name="name_prefix" class="form-control" placeholder="z.B. Widerstand Metallschicht" required>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">Kategorie</label>
+                        <select name="category_id" class="form-select">
+                            {% for cat in categories %}
+                                <option value="{{ cat['id'] }}">{{ cat['name'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Reihe & Werte -->
+                    <div class="col-md-12">
+                        <label class="form-label d-block">E-Reihe</label>
+                        {% for series in e_series %}
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="series" id="s_{{ series }}" value="{{ series }}" {% if series == 'E12' %}checked{% endif %}>
+                            <label class="form-check-label" for="s_{{ series }}">{{ series }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label">Von Wert</label>
+                        <input type="number" step="any" name="min_val" class="form-control" value="100" required>
+                        <div class="form-text">z.B. 100 (für 100 Ohm)</div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label">Bis Wert</label>
+                        <input type="number" step="any" name="max_val" class="form-control" value="1000000" required>
+                        <div class="form-text">z.B. 1000000 (für 1M)</div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label">Einheit</label>
+                        <select name="unit" class="form-select">
+                            <option value="Ohm">Ω (Ohm)</option>
+                            <option value="F">F (Farad)</option>
+                            <option value="H">H (Henry)</option>
+                            <option value="">(keine)</option>
+                        </select>
+                    </div>
+
+                    <!-- Ort & Menge -->
+                    <hr>
+                    
+                    <div class="col-md-12">
+                        <label class="form-label">Ort (Box/Kiste)</label>
+                        <select name="location_id" class="form-select" required>
+                            <option value="">-- Wähle eine Box --</option>
+                            {% for loc in locations %}
+                                <option value="{{ loc['id'] }}">{{ loc['name'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <label class="form-label">Fach Schema</label>
+                        <input type="text" name="sub_location_base" class="form-control" value="Fach " required>
+                        <div class="form-text">Wird mit Startnummer kombiniert: "Fach " + "1" -> "Fach 1"</div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label">Startnummer</label>
+                        <input type="number" name="start_index" class="form-control" value="1">
+                        <div class="form-text">Zählt hoch für jeden Wert der Reihe.</div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">Standard Menge</label>
+                        <input type="number" name="default_qty" class="form-control" value="50">
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">Min. Menge</label>
+                        <input type="number" name="default_min" class="form-control" value="10">
+                    </div>
+                    
+                    <div class="col-12 mt-4">
+                        <button type="submit" class="btn btn-success btn-lg w-100">🚀 Generieren starten</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Zurück</a>
+{% endblock %}

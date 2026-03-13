@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">{{ item['name'] }}</h2>
+            <div>
+                {% if db_id != 'local' %}
+                    <span class="badge bg-warning text-dark">📦 Externes Lager (Read-Only)</span>
+                {% else %}
+                    <span class="badge bg-success">🏠 Mein Lager</span>
+                {% endif %}
+                <span class="badge bg-secondary ms-2">{{ item['category_name'] or 'Ohne Kategorie' }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>📍 Lagerort</h4>
+                    <p class="lead">
+                        <strong>{{ item['location_name'] or 'Nicht zugewiesen' }}</strong><br>
+                        <small class="text-muted">{{ item['sub_location'] }}</small>
+                    </p>
+                    
+                    <h4>📦 Bestand</h4>
+                    <p class="lead">
+                        <span class="badge {% if item['quantity'] <= item['min_quantity'] %}bg-danger{% else %}bg-success{% endif %} rounded-pill">
+                            {{ item['quantity'] }} Stück
+                        </span>
+                        <br>
+                        <small class="text-muted">Min: {{ item['min_quantity'] }}</small>
+                    </p>
+                </div>
+                
+                <div class="col-md-6 border-start">
+                    <h4>📄 Dokumentation</h4>
+                    <div class="d-grid gap-2 mb-3">
+                        {% if item['datasheet'] %}
+                            <a href="{{ url_for('static', filename='uploads/' + item['datasheet']) }}" class="btn btn-outline-primary" target="_blank">
+                                📥 Datenblatt 1
+                            </a>
+                        {% endif %}
+                        {% if item['datasheet2'] %}
+                            <a href="{{ url_for('static', filename='uploads/' + item['datasheet2']) }}" class="btn btn-outline-primary" target="_blank">
+                                📥 Datenblatt 2
+                            </a>
+                        {% endif %}
+                        {% if not item['datasheet'] and not item['datasheet2'] %}
+                             <p class="text-muted">Keine Datenblätter hinterlegt.</p>
+                        {% endif %}
+                    </div>
+
+                    <h4>🖼️ Bilder</h4>
+                    <div class="row mb-3">
+                        {% if item['image1'] %}
+                        <div class="col-6">
+                            <a href="{{ url_for('static', filename='uploads/' + item['image1']) }}" target="_blank">
+                                <img src="{{ url_for('static', filename='uploads/' + item['image1']) }}" class="img-fluid rounded border" alt="Bild 1">
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% if item['image2'] %}
+                        <div class="col-6">
+                            <a href="{{ url_for('static', filename='uploads/' + item['image2']) }}" target="_blank">
+                                <img src="{{ url_for('static', filename='uploads/' + item['image2']) }}" class="img-fluid rounded border" alt="Bild 2">
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% if not item['image1'] and not item['image2'] %}
+                            <div class="col-12"><p class="text-muted">Keine Bilder hinterlegt.</p></div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if item['notes'] %}
+                        <h4>📌 Notizen / Pinout</h4>
+                        <div class="alert alert-secondary font-monospace" style="white-space: pre-wrap;">{{ item['notes'] }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <hr>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('index', db=db_id) }}" class="btn btn-secondary">⬅️ Zurück zur Liste</a>
+                <div class="btn-group">
+                    {% if db_id == 'local' %}
+                        <a href="{{ url_for('edit', id=item['id']) }}" class="btn btn-warning">✏️ Bearbeiten</a>
+                        <a href="{{ url_for('qr_code', id=item['id']) }}" class="btn btn-outline-dark" target="_blank">📷 QR Code</a>
+                    {% else %}
+                        <button class="btn btn-warning" disabled title="Externe Datenbanken sind schreibgeschützt">✏️ Bearbeiten (Read-Only)</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

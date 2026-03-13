@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>📷 QR Code Scanner</h1>
+    <p class="lead">Scanne deine Lager-Codes.</p>
+
+    <div class="card bg-light">
+        <div class="card-body text-center">
+            <div id="reader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
+            <div id="result" class="mt-3"></div>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script>
+        function onScanSuccess(decodedText, decodedResult) {
+            // Stop scanning once found
+            // html5QrcodeScanner.clear();
+            
+            // Fix für Scanner, die "http://" vor "loc:" hängen
+            if (decodedText.startsWith("http://loc:") || decodedText.startsWith("https://loc:")) {
+                decodedText = decodedText.replace(/^https?:\/\//, "");
+            }
+            
+            // Logik: Was ist das für ein Code?
+            
+            // 1. URL? (Unsere Location Codes sind URLs)
+            if (decodedText.startsWith("http")) {
+                window.location.href = decodedText;
+                return;
+            }
+            
+            // 2. Item? "inventory:3" oder "inventory_item:3"
+            if (decodedText.includes("inventory:") || decodedText.includes("inventory_item:")) {
+                let parts = decodedText.split(":");
+                let id = parts[parts.length - 1]; // Letzten Teil nehmen
+                window.location.href = "/item/" + id;
+                return;
+            }
+            
+            // 3. Location? "inv_loc:5" (oder altes "loc:5")
+            if (decodedText.startsWith("inv_loc:") || decodedText.startsWith("loc:")) {
+                let parts = decodedText.split(":");
+                let id = parts[parts.length - 1];
+                window.location.href = "/?location_id=" + id;
+                return;
+            }
+            
+            // Fallback
+            document.getElementById('result').innerHTML = '<div class="alert alert-success">Code gefunden: ' + decodedText + ' <br> (Kein bekanntes Format)</div>';
+        }
+
+        function onScanFailure(error) {
+            // ignore
+        }
+
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader",
+            { fps: 10, qrbox: {width: 250, height: 250} },
+            /* verbose= */ false);
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    </script>
+{% endblock %}

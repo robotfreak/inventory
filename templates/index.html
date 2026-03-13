@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>📦 Lagerbestand</h1>
+    
+    <!-- Suchfilter -->
+    <div class="card mb-4 bg-light">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-12 border-bottom pb-3 mb-2">
+                    <label class="form-label fw-bold">🗺️ Suchbereich (Welches Lager?)</label>
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="db" id="db_all" value="all" {% if current_db == 'all' %}checked{% endif %} onchange="this.form.submit()">
+                        <label class="btn btn-outline-primary" for="db_all">🌐 Alle Lager</label>
+
+                        {% for db in all_dbs %}
+                        <input type="radio" class="btn-check" name="db" id="db_{{ db.id }}" value="{{ db.id }}" {% if current_db == db.id %}checked{% endif %} onchange="this.form.submit()">
+                        <label class="btn btn-outline-primary" for="db_{{ db.id }}">{{ db.name }}</label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <input type="text" name="q" class="form-control" placeholder="Suche..." value="{{ search }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="category_id" class="form-select">
+                        <option value="">-- Alle Kategorien --</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat['id'] }}" {% if current_cat|string == cat['id']|string %}selected{% endif %}>
+                                {{ cat['name'] }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="location_id" class="form-select">
+                        <option value="">-- Alle Orte --</option>
+                        {% for loc in locations %}
+                            <option value="{{ loc['id'] }}" {% if current_loc|string == loc['id']|string %}selected{% endif %}>
+                                {{ loc['name'] }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" type="checkbox" name="low_stock" id="lowStock" {% if low_stock %}checked{% endif %}>
+                        <label class="form-check-label" for="lowStock">
+                            Nur niedriger Bestand
+                        </label>
+                    </div>
+                </div>
+                <div class="col-12 mt-2">
+                    <button type="submit" class="btn btn-primary w-100">🔍 Suchen / Filtern</button>
+                    {% if search or current_cat or current_loc or low_stock %}
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary w-100 mt-2">Filter zurücksetzen</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <!-- Helper Macro für Sortier-Links -->
+                    {% macro sort_link(col, title) %}
+                        <a href="{{ url_for('index', sort=col, order='desc' if sort == col and order == 'asc' else 'asc', q=search, category_id=current_cat, location_id=current_loc, low_stock=low_stock) }}" 
+                           class="text-white text-decoration-none d-block">
+                           {{ title }}
+                           {% if sort == col %}
+                               <small>{{ '⬇' if order == 'desc' else '⬆' }}</small>
+                           {% else %}
+                               <small class="text-muted">↕</small>
+                           {% endif %}
+                        </a>
+                    {% endmacro %}
+
+                    <th style="width: 5%">ID</th>
+                    <th style="width: 25%">{{ sort_link('name', 'Name') }}</th>
+                    <th style="width: 15%">{{ sort_link('category', 'Kategorie') }}</th>
+                    <th style="width: 20%">{{ sort_link('location', 'Ort (Box)') }}</th>
+                    <th style="width: 15%">{{ sort_link('sub_location', 'Details') }}</th>
+                    <th style="width: 10%">{{ sort_link('quantity', 'Menge') }}</th>
+                    <th style="width: 10%">Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr class="{% if item['quantity'] <= item['min_quantity'] %}table-warning{% else %}{% endif %}">
+                    <td><small class="text-muted">{{ item['id'] }}</small></td>
+                    <td>
+                        <a href="{{ url_for('item_detail', id=item['id'], db=item['_db_id']) }}" class="text-decoration-none fw-bold text-dark d-block">
+                            {{ item['name'] }}
+                        </a>
+                        {% if item['_db_id'] != 'local' %}
+                            <small class="badge bg-light text-muted border">📦 {{ item['_db_name'] }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item['category_name'] %}
+                        <span class="badge bg-light text-dark border">{{ item['category_name'] }}</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if item['location_name'] %}
+                            <div class="d-flex align-items-center">
+                                <a href="{{ url_for('index', location_id=item['location_id']) }}" 
+                                   class="text-decoration-none text-secondary small" 
+                                   title="{{ item['location_name'] }}">
+                                   📍 {{ item['location_name'].split(' > ')[-1] }} 
+                                   <!-- Nur letztes Element anzeigen, Hover zeigt Full Path -->
+                                </a>
+                                {% if item['wled_ip'] %}
+                                    <button onclick="flashLocation({{ item['location_id'] }})" class="btn btn-sm btn-link text-warning p-0 ms-1">💡</button>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="small">{{ item['sub_location'] }}</td>
+                    <td>
+                        <span class="badge {% if item['quantity'] <= item['min_quantity'] %}bg-danger{% else %}bg-success{% endif %} rounded-pill">
+                            {{ item['quantity'] }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            {% if item['_db_id'] == 'local' %}
+                                <a href="{{ url_for('edit', id=item['id']) }}" class="btn btn-outline-secondary" title="Bearbeiten">✏️</a>
+                                <a href="{{ url_for('qr_code', id=item['id']) }}" target="_blank" class="btn btn-outline-dark" title="QR">📷</a>
+                            {% else %}
+                                <span class="badge bg-light text-muted border" title="Externes Lager (Read-Only)">🔒 {{ item['_db_name'] }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="d-grid gap-2 mt-4">
+        <a href="{{ url_for('create') }}" class="btn btn-primary btn-lg">Neues Teil anlegen</a>
+    </div>
+
+    <script>
+    function flashLocation(id) {
+        fetch('/api/flash/' + id, {method: 'POST'})
+            .then(r => r.json())
+            .then(d => {
+                if(!d.success) alert(d.msg);
+            });
+    }
+    </script>
+{% endblock %}
