@@ -12,7 +12,11 @@ CREATE TABLE categories (
 CREATE TABLE locations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    description TEXT
+    description TEXT,
+    wled_ip TEXT, 
+    led_index INTEGER DEFAULT 0, 
+    led_count INTEGER DEFAULT 10, 
+    parent_id INTEGER REFERENCES locations(id)
 );
 
 CREATE TABLE items (
